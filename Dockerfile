@@ -1,38 +1,59 @@
-FROM openjdk:18-jdk-slim
+DockerfileFROM openjdk:21-jdk-slim
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
-#WORKDIR /
-#=============================
-# Install Dependenices
-#=============================
 SHELL ["/bin/bash", "-c"]
 
-RUN apt update && apt install -y curl \
-	sudo wget unzip bzip2 libdrm-dev \
-	libxkbcommon-dev libgbm-dev libasound-dev libnss3 \
-	libxcursor1 libpulse-dev libxshmfence-dev \
-	xauth xvfb x11vnc fluxbox wmctrl libdbus-glib-1-2 socat \
-	virt-manager
+RUN apt-get update && \
+	apt-get install -y --no-install-recommends \
+	bzip2 \
+	ca-certificates \
+	curl \
+	iproute2 \
+	libasound2 \
+	libdbus-glib-1-2 \
+	libdrm2 \
+	libgbm1 \
+	libgl1 \
+	libglu1-mesa \
+	libnss3 \
+	libpulse0 \
+	libx11-6 \
+	libx11-xcb1 \
+	libxcomposite1 \
+	libxcursor1 \
+	libxi6 \
+	libxkbcommon0 \
+	libxrandr2 \
+	libxrender1 \
+	libxshmfence1 \
+	libxtst6 \
+	socat \
+	unzip \
+	wget \
+	xauth \
+	xvfb && \
+	rm -rf /var/lib/apt/lists/*
 
 
 # Docker labels.
 LABEL maintainer "Halim Qarroum <hqm.post@gmail.com>"
 LABEL description "A Docker image allowing to run an Android emulator"
-LABEL version "1.0.0"
+LABEL version "1.3.0"
 
 
 # Arguments that can be overriden at build-time.
 ARG INSTALL_ANDROID_SDK=1
-ARG API_LEVEL=33
+ARG API_LEVEL=34
 ARG IMG_TYPE=google_apis
 ARG ARCHITECTURE=x86_64
-ARG CMD_LINE_VERSION=9477386_latest
+ARG CMD_LINE_VERSION=11076708_latest
 ARG DEVICE_ID=pixel
 ARG GPU_ACCELERATED=false
 
 # Environment variables.
 ENV ANDROID_SDK_ROOT=/opt/android \
+	ANDROID_HOME=/opt/android \
 	ANDROID_PLATFORM_VERSION="platforms;android-$API_LEVEL" \
 	PACKAGE_PATH="system-images;android-${API_LEVEL};${IMG_TYPE};${ARCHITECTURE}" \
 	API_LEVEL=$API_LEVEL \
@@ -46,10 +67,8 @@ ENV ANDROID_SDK_ROOT=/opt/android \
 
 # Exporting environment variables to keep in the path
 # Android SDK binaries and shared libraries.
-ENV PATH "${PATH}:${ANDROID_SDK_ROOT}/platform-tools"
-ENV PATH "${PATH}:${ANDROID_SDK_ROOT}/emulator"
-ENV PATH "${PATH}:${ANDROID_SDK_ROOT}/cmdline-tools/tools/bin"
-ENV LD_LIBRARY_PATH "$ANDROID_SDK_ROOT/emulator/lib64:$ANDROID_SDK_ROOT/emulator/lib64/qt/lib"
+ENV PATH=${PATH}:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/emulator:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin
+ENV LD_LIBRARY_PATH=${ANDROID_SDK_ROOT}/emulator/lib64:${ANDROID_SDK_ROOT}/emulator/lib64/qt/lib
 
 # Set the working directory to /opt
 WORKDIR /opt
